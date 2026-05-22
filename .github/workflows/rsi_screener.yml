@@ -28,8 +28,8 @@ jobs:
 
       - name: Run RSI Screener + Send Telegram Alert
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.8421112592:AAF1qJfuWCr-2hbsamt8QAuZfNL5Uv5I1So }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.653352464 }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python rsi_screener.py
 
       - name: Upload Excel report as artifact
