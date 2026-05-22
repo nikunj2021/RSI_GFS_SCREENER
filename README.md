@@ -1,32 +1,53 @@
 # NSE RSI Screener 📊
 
-Automated weekly RSI screener for NSE stocks — runs every **Saturday at 9:05 AM IST** via GitHub Actions.  
-Scans **NSE 500** and **Microcap 250** stocks and generates a formatted Excel report.
+Automated weekly RSI screener for NSE stocks.
+Runs every **Saturday at 9:05 AM IST** via GitHub Actions.
+Sends results via **Telegram message** + **Email with Excel attachment**.
 
 ---
 
 ## Scan Conditions
 
-| Timeframe | Condition |
-|-----------|-----------|
-| Monthly RSI | > 60 |
-| Weekly RSI  | > 60 |
-| Daily RSI   | > 40 and < 45 |
-
-All three conditions must be **true simultaneously** for a stock to appear in the report.
+| Timeframe   | Condition              |
+|-------------|------------------------|
+| Monthly RSI | > 60                   |
+| Weekly RSI  | > 60                   |
+| Daily RSI   | > 40  **and**  < 45    |
 
 ---
 
-## Report Columns
+## Alerts
 
-| Col | Header | Description |
-|-----|--------|-------------|
-| 1 | Symbol | NSE ticker symbol |
-| 2 | TradingView Link | Direct chart link |
-| 3 | Current Price (₹) | Last closing price |
-| 4 | Daily RSI | 14-period RSI on daily candles |
-| 5 | Weekly RSI | 14-period RSI on weekly candles |
-| 6 | Monthly RSI | 14-period RSI on monthly candles |
+| Alert    | What you receive                                         |
+|----------|----------------------------------------------------------|
+| Telegram | Formatted table of all matched stocks with RSI values    |
+| Email    | HTML email with table + Excel report attached            |
+
+---
+
+## GitHub Secrets Required
+
+Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret Name          | Value                                     |
+|----------------------|-------------------------------------------|
+| `TELEGRAM_BOT_TOKEN` | Your bot token from @BotFather            |
+| `TELEGRAM_CHAT_ID`   | Your chat/group ID (use @userinfobot)     |
+| `EMAIL_SENDER`       | Your Gmail address                        |
+| `EMAIL_PASSWORD`     | Gmail App Password (16-char)              |
+| `EMAIL_RECEIVER`     | Recipient email address                   |
+
+### How to get Telegram credentials
+1. Open Telegram → search **@BotFather** → send `/newbot`
+2. Follow prompts → copy the **bot token**
+3. Search **@userinfobot** → send any message → copy your **chat id**
+4. Send a message to your bot first (so it can message you back)
+
+### How to get Gmail App Password
+1. Go to myaccount.google.com → Security
+2. Enable **2-Step Verification** (required)
+3. Search "App passwords" → create one for "Mail"
+4. Copy the **16-character password** (no spaces) → use as `EMAIL_PASSWORD`
 
 ---
 
@@ -34,97 +55,54 @@ All three conditions must be **true simultaneously** for a stock to appear in th
 
 ```
 nse-rsi-screener/
-├── .github/
-│   └── workflows/
-│       └── rsi_screener.yml   ← Automated schedule
+├── .github/workflows/rsi_screener.yml
 ├── data/
 │   ├── nse500list.xlsx        ← Must have a "Symbol" column
 │   └── Micro250list.xlsx      ← Must have a "Symbol" column
-├── output/                    ← Reports saved here (auto-created)
-├── rsi_screener.py            ← Main script
+├── output/                    ← Reports saved here automatically
+├── rsi_screener.py
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Setup Instructions
+## First-Time Setup
 
-### 1. Clone & prepare repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/nse-rsi-screener.git
+git clone https://github.com/nikunj2021/nse-rsi-screener.git
 cd nse-rsi-screener
 
-# Place your Excel files in data/
-cp /path/to/nse500list.xlsx   data/
-cp /path/to/Micro250list.xlsx  data/
-```
+# Replace sample files with your actual stock lists
+cp /your/path/nse500list.xlsx   data/
+cp /your/path/Micro250list.xlsx data/
 
-### 2. Excel file format required
-
-Your `nse500list.xlsx` and `Micro250list.xlsx` must contain a column named **`Symbol`**:
-
-| Symbol | (other columns are ignored) |
-|--------|-----------------------------|
-| RELIANCE | ... |
-| TCS | ... |
-| INFY | ... |
-
-### 3. Push to GitHub
-```bash
 git add .
-git commit -m "Initial setup"
+git commit -m "Add stock data files"
 git push origin main
 ```
 
-### 4. Enable GitHub Actions
-- Go to your repo → **Actions** tab
-- If prompted, click **"I understand my workflows, go ahead and enable them"**
+Then add all 5 secrets in GitHub → Settings → Secrets.
 
-### 5. Test manually
-- Go to **Actions** → `NSE RSI Screener — Weekly Saturday Run` → **Run workflow**
+---
 
-### 6. Download the report
-After the workflow completes:
-- Go to **Actions** → click the latest run
-- Scroll to **Artifacts** section at the bottom
-- Download `RSI-Screener-Report-XXXXX.zip`
+## Test Manually
 
-The report is also **committed directly** to the `output/` folder in your repo.
+GitHub → Actions tab → `NSE RSI Screener` → **Run workflow**
+
+After it finishes:
+- Check your **Telegram** for the alert message
+- Check your **Email** for the HTML report + Excel attachment
+- Download Excel from the **Artifacts** section of the workflow run
 
 ---
 
 ## Schedule
 
-| Setting | Value |
-|---------|-------|
-| Cron | `35 3 * * 6` |
-| UTC time | Saturday 03:35 AM |
-| IST time | Saturday 09:05 AM |
+| Setting  | Value             |
+|----------|-------------------|
+| Cron     | `35 3 * * 6`      |
+| UTC      | Saturday 03:35 AM |
+| IST      | Saturday 09:05 AM |
 
-> GitHub Actions may run up to 10–15 minutes late due to runner availability. This is normal behaviour.
-
----
-
-## Local Testing
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run script
-python rsi_screener.py
-
-# Check output
-ls output/
-```
-
----
-
-## Colour Legend in Report
-
-| Colour | Meaning |
-|--------|---------|
-| 🟢 Green cell | RSI above threshold (strong signal) |
-| 🟡 Yellow cell | RSI at or near boundary |
-| White | Normal |
+> GitHub Actions may run up to 10–15 min late on free-tier — this is normal.
