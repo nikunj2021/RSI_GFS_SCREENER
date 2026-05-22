@@ -2,12 +2,11 @@ name: NSE RSI Screener — Weekly Saturday Run
 
 on:
   schedule:
-    # Every Saturday at 03:35 UTC = 09:05 AM IST (UTC+5:30)
-    - cron: "35 3 * * 6"
-  workflow_dispatch:   # Allow manual trigger from GitHub Actions tab
+    - cron: "35 3 * * 6"   # Saturday 03:35 UTC = 09:05 AM IST
+  workflow_dispatch:         # Manual trigger from GitHub UI
 
 permissions:
-  contents: write      # Required to push report back to repo
+  contents: write
 
 jobs:
   run-screener:
@@ -15,26 +14,24 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      # ── 1. Checkout repository ──────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Set up Python ────────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
-      # ── 3. Install dependencies ─────────────────────────────────────────────
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # ── 4. Run RSI screener ─────────────────────────────────────────────────
-      - name: Run RSI Screener
+      - name: Run RSI Screener + Send Telegram Alert
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.8421112592:AAF1qJfuWCr-2hbsamt8QAuZfNL5Uv5I1So }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.653352464 }}
         run: python rsi_screener.py
 
-      # ── 5. Upload report as GitHub Actions artifact (downloadable 90 days) ──
       - name: Upload Excel report as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -42,7 +39,6 @@ jobs:
           path: output/*.xlsx
           retention-days: 90
 
-      # ── 6. Commit report back to the repo ───────────────────────────────────
       - name: Commit report to repository
         run: |
           git config user.name  "github-actions[bot]"
